@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Poppins', Arial, sans-serif;
+            min-height: 100vh;
+            margin: 0;
+            background: url('/assets/noaa-0ETSZYPjvDo-unsplash.jpg') center center/cover no-repeat fixed, linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow-x: hidden;
+        }
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(40, 40, 60, 0.55);
+            z-index: 1;
+            pointer-events: none;
+        }
+        .container {
+            position: relative;
+            z-index: 2;
+            max-width: 420px;
+            width: 95%;
+            margin: 20px auto;
+            padding: 30px 25px 25px 25px;
+            border-radius: 24px;
+            background: rgba(255,255,255,0.18);
+            box-shadow: 0 8px 32px 0 rgba(31,38,135,0.37);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.18);
+            text-align: center;
+            animation: fadeInUp 0.8s ease-out;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px 0 rgba(31,38,135,0.45);
+        }
+        @keyframes fadeInUp {
+            from { 
+                opacity: 0; 
+                transform: translateY(40px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
+        }
+        .datetime {
+            color: #fff;
+            font-size: 1rem;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            animation: fadeIn 1s ease-in 0.3s both;
+        }
+        h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #fff;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            animation: fadeIn 1s ease-in 0.4s both;
+        }
+        .search-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            animation: fadeIn 1s ease-in 0.5s both;
+        }
+        .search-bar input {
+            flex: 1;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: none;
+            font-size: 1rem;
+            outline: none;
+            background: rgba(255,255,255,0.9);
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .search-bar input:focus {
+            background: rgba(255,255,255,1);
+            box-shadow: 0 4px 16px rgba(102,126,234,0.3);
+            transform: translateY(-2px);
+        }
+        .search-bar button {
+            padding: 12px 20px;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(102,126,234,0.2);
+        }
+        .search-bar button:hover {
+            background: linear-gradient(135deg, #764ba2, #667eea);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102,126,234,0.4);
+        }
+        .search-bar button:active {
+            transform: translateY(0);
+        }
+        .weather-info {
+            margin-top: 15px;
+            padding: 20px 15px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(102,126,234,0.1);
+            color: #222;
+            min-height: 120px;
+            font-size: 1rem;
+            animation: slideInUp 0.6s ease-out;
+            transition: all 0.3s ease;
+        }
+        .weather-info:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(102,126,234,0.15);
+        }
+        @keyframes slideInUp {
+            from { 
+                opacity: 0; 
+                transform: translateY(20px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
+        }
+        .weather-info img {
+            width: 64px;
+            height: 64px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .loading {
+            margin-top: 20px;
+            color: #667eea;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            animation: fadeIn 0.5s ease;
+        }
+        .loading i {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 22px;
+            color: #fff;
+            text-decoration: none;
+            font-weight: 500;
+            background: rgba(102,126,234,0.7);
+            padding: 8px 18px;
+            border-radius: 20px;
+            transition: background 0.3s;
+        }
+        .back-link:hover {
+            background: rgba(118,75,162,0.8);
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px 15px 15px 15px;
+                margin: 10px auto;
+                width: 92%;
+            }
+            h2 {
+                font-size: 1.5rem;
+            }
+            .search-bar {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .search-bar input,
+            .search-bar button {
+                width: 100%;
+                padding: 14px 16px;
+            }
+            .weather-info {
+                padding: 15px 12px;
+                font-size: 0.95rem;
+            }
+            .history {
+                margin-top: 15px;
+                padding: 12px 10px;
+            }
+            .history-list {
+                max-height: 150px;
+            }
+            .datetime {
+                font-size: 0.9rem;
+            }
+            .logo {
+                font-size: 1.8rem;
+            }
+            .weather-icons {
+                font-size: 1.4rem;
+                gap: 12px;
+            }
+        }
+        
+        @media (max-width: 400px) {
+            .container {
+                padding: 15px 12px 12px 12px;
+                width: 95%;
+            }
+            h2 {
+                font-size: 1.3rem;
+            }
+            .weather-info {
+                padding: 12px 10px;
+                font-size: 0.9rem;
+            }
+            .history-list li {
+                padding: 8px 10px;
+                font-size: 0.9rem;
+            }
+        }
+        
+        /* Smooth scrolling for better UX */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* Better focus states for accessibility */
+        .search-bar input:focus,
+        .search-bar button:focus {
+            outline: 2px solid rgba(102,126,234,0.5);
+            outline-offset: 2px;
+        }
+        
+        /* Loading animation improvements */
+        .weather-info.loading {
+            background: linear-gradient(90deg, rgba(255,255,255,0.9) 25%, rgba(102,126,234,0.1) 50%, rgba(255,255,255,0.9) 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+        
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        /* Success animation for weather display */
+        .weather-info.success {
+            animation: successPulse 0.6s ease-out;
+        }
+        
+        @keyframes successPulse {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        /* Bounce animation for loading dots */
+        @keyframes bounce {
+            0%, 80%, 100% { 
+                transform: scale(0);
+                opacity: 0.5;
+            } 
+            40% { 
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        /* Fade in animation */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .history {
+            margin-top: 20px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(102,126,234,0.1);
+            padding: 15px 12px;
+            color: #333;
+            font-size: 0.95rem;
+            animation: slideInUp 0.6s ease-out 0.2s both;
+            transition: all 0.3s ease;
+        }
+        .history:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102,126,234,0.15);
+        }
+        .history-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #667eea;
+            font-size: 1rem;
+        }
+        .history-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .history-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        .history-list::-webkit-scrollbar-track {
+            background: rgba(102,126,234,0.1);
+            border-radius: 3px;
+        }
+        .history-list::-webkit-scrollbar-thumb {
+            background: rgba(102,126,234,0.3);
+            border-radius: 3px;
+        }
+        .history-list::-webkit-scrollbar-thumb:hover {
+            background: rgba(102,126,234,0.5);
+        }
+        .history-list li {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(102,126,234,0.1);
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            margin-bottom: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+        .history-list li::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(102,126,234,0.1), transparent);
+            transition: left 0.5s ease;
+        }
+        .history-list li:hover::before {
+            left: 100%;
+        }
+        .history-list li:hover {
+            background-color: rgba(102,126,234,0.08);
+            transform: translateX(5px);
+            box-shadow: 0 2px 8px rgba(102,126,234,0.1);
+        }
+        .history-list li:last-child {
+            border-bottom: none;
+        }
+        .history-list li .city-name {
+            font-weight: 500;
+            color: #667eea;
+            transition: color 0.3s ease;
+        }
+        .history-list li:hover .city-name {
+            color: #764ba2;
+        }
+        .history-list li .timestamp {
+            color: #888;
+            font-size: 0.85em;
+            margin-left: 8px;
+        }
+        .history-list li .click-hint {
+            font-size: 0.8em;
+            color: #667eea;
+            font-style: italic;
+            margin-top: 4px;
+            opacity: 0.8;
+        }
+        .logo {
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+        .logo i {
+            font-size: 2rem;
+            color: #667eea;
+        }
+        .weather-icons {
+            margin-bottom: 18px;
+            font-size: 1.7rem;
+            color: #667eea;
+            display: flex;
+            justify-content: center;
+            gap: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="logo"><i class="fas fa-cloud-sun"></i> WeatherMate</div>
+    <div class="weather-icons">
+        <i class="fas fa-sun"></i>
+        <i class="fas fa-cloud"></i>
+        <i class="fas fa-cloud-showers-heavy"></i>
+        <i class="fas fa-bolt"></i>
+        <i class="fas fa-snowflake"></i>
+    </div>
+    <div class="container">
+        <div class="datetime" id="datetime"></div>
+        <h2><i class="fas fa-cloud-sun"></i> Weather App</h2>
+        <div id="welcome-message" style="color: #fff; margin-bottom: 15px; font-size: 1.1rem;"></div>
+        <form class="search-bar" onsubmit="getWeather(); return false;">
+            <input type="text" id="city" placeholder="Enter city name">
+            <button type="submit"><i class="fas fa-search"></i> Get Weather</button>
+        </form>
+        <div class="weather-info" id="weather">Enter a city to see the weather!</div>
+        <div class="loading" id="loading" style="display:none;"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
+        <div id="history" class="history"></div>
+        <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+            <a href="/" class="back-link"><i class="fas fa-arrow-left"></i> Back to Home</a>
+            <a href="/logout" class="back-link" style="background: rgba(231, 76, 60, 0.7);"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </div>
+    <script>
+        // Flag to track if auto-loading has already happened
+        let hasAutoLoaded = false;
+        
+        // Live date and time
+        function updateDateTime() {
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const dateStr = now.toLocaleDateString(undefined, options);
+            const timeStr = now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            document.getElementById('datetime').textContent = `${dateStr} | ${timeStr}`;
+        }
+        setInterval(updateDateTime, 1000);
+        updateDateTime();
+
+        // Load user info and display welcome message
+        async function loadUserInfo() {
+            try {
+                const response = await fetch('/api/user');
+                const data = await response.json();
+                if (data.user) {
+                    document.getElementById('welcome-message').innerHTML = 
+                        `<i class="fas fa-user"></i> Welcome back, <strong>${data.user.name}</strong>!`;
+                }
+            } catch (err) {
+                console.log('Could not load user info');
+            }
+        }
+
+        async function getWeather() {
+            const city = document.getElementById('city').value.trim();
+            if (!city) return;
+            
+            // Reset auto-load flag when user manually searches
+            hasAutoLoaded = false;
+            
+            // Use the new function to load weather
+            await loadWeatherForCity(city);
+            
+            // Save search to backend
+            saveSearch(city);
+            
+            // Refresh history display
+            fetchHistory();
+        }
+        // Save search to backend
+        async function saveSearch(city) {
+            try {
+                await fetch('/api/search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ city })
+                });
+            } catch (err) {}
+        }
+        // Fetch and display search history
+        async function fetchHistory() {
+            try {
+                const res = await fetch('/api/history');
+                const data = await res.json();
+                if (data.history && data.history.length > 0) {
+                    let html = '<div class="history-title">Recent Searches (Click to search again)</div><ul class="history-list">';
+                    data.history.forEach((item, index) => {
+                        const date = new Date(item.Timestamp._seconds ? item.Timestamp._seconds * 1000 : item.Timestamp);
+                        const isFirst = index === 0;
+                        html += `
+                            <li onclick="searchFromHistory('${item.City}')" title="Click to search for ${item.City}">
+                                <i class='fas fa-map-marker-alt'></i> 
+                                <span class="city-name">${item.City}</span>
+                                <span class="timestamp">(${date.toLocaleString()})</span>
+                                ${isFirst ? '<div class="click-hint">Most recent search</div>' : ''}
+                            </li>`;
+                    });
+                    html += '</ul>';
+                    document.getElementById('history').innerHTML = html;
+                } else {
+                    document.getElementById('history').innerHTML = '';
+                }
+            } catch (err) {
+                console.error('Error fetching history:', err);
+                document.getElementById('history').innerHTML = '';
+            }
+        }
+        
+        // Simple and direct auto-load function
+        async function loadMostRecentWeather() {
+            console.log('=== STARTING AUTO-LOAD ===');
+            console.log('Attempting to load most recent weather...');
+            
+            try {
+                console.log('1. Fetching most recent search...');
+                // Get most recent search
+                const response = await fetch('/api/most-recent-search');
+                console.log('2. Response received:', response.status);
+                const data = await response.json();
+                console.log('3. Data received:', data);
+                
+                if (data.mostRecent) {
+                    const city = data.mostRecent.City;
+                    console.log('4. Found recent search:', city);
+                    
+                    // Set city in input
+                    document.getElementById('city').value = city;
+                    console.log('5. City set in input field');
+                    
+                    // Show loading message with better styling
+                    const weatherDiv = document.getElementById('weather');
+                    weatherDiv.innerHTML = `
+                        <div style="text-align: center; padding: 20px;">
+                            <div style="color: #667eea; font-size: 1.1rem; margin-bottom: 10px;">
+                                <i class="fas fa-history" style="animation: spin 2s linear infinite;"></i>
+                            </div>
+                            <p style="color: #667eea; font-weight: 500;">Loading your most recent search</p>
+                            <p style="color: #764ba2; font-size: 1.2rem; font-weight: 600; margin-top: 5px;">${city}</p>
+                            <div style="margin-top: 15px; display: flex; justify-content: center; gap: 8px;">
+                                <div style="width: 8px; height: 8px; background: #667eea; border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both;"></div>
+                                <div style="width: 8px; height: 8px; background: #667eea; border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both 0.2s;"></div>
+                                <div style="width: 8px; height: 8px; background: #667eea; border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both 0.4s;"></div>
+                            </div>
+                        </div>
+                    `;
+                    console.log('6. Loading message displayed');
+                    
+                    // Load weather
+                    console.log('7. Loading weather data...');
+                    await loadWeatherForCity(city);
+                    console.log('8. Weather loaded successfully');
+                } else {
+                    console.log('4. No recent search found in data');
+                }
+            } catch (err) {
+                console.error('ERROR in loadMostRecentWeather:', err);
+            }
+            console.log('=== AUTO-LOAD COMPLETE ===');
+        }
+        
+        // Separate function to load weather for a specific city
+        async function loadWeatherForCity(city) {
+            if (!city) return;
+            
+            const weatherDiv = document.getElementById('weather');
+            const loadingDiv = document.getElementById('loading');
+            
+            // Show loading state with animation
+            loadingDiv.style.display = 'flex';
+            weatherDiv.innerHTML = '';
+            weatherDiv.classList.add('loading');
+            
+            try {
+                const response = await fetch(`/api/weather/${encodeURIComponent(city)}`);
+                const data = await response.json();
+                
+                // Hide loading
+                loadingDiv.style.display = 'none';
+                weatherDiv.classList.remove('loading');
+                
+                if (data.error) {
+                    weatherDiv.innerHTML = `<p style="color:#e74c3c; text-align: center;"><i class="fas fa-exclamation-triangle"></i> Error: ${data.error}</p>`;
+                } else {
+                    let message = `
+                        <h3 style="margin-bottom:15px; color: #667eea;">🌍 ${data.location.name}, ${data.location.country}</h3>
+                        <img src="${data.current.condition.icon}" alt="Weather icon" style="margin-bottom: 10px;">
+                        <div style="display: grid; gap: 8px; text-align: left;">
+                            <p><i class="fas fa-thermometer-half" style="color: #667eea; width: 20px;"></i> <strong>Temperature:</strong> ${data.current.temp_c}°C</p>
+                            <p><i class="fas fa-tint" style="color: #667eea; width: 20px;"></i> <strong>Humidity:</strong> ${data.current.humidity}%</p>
+                            <p><i class="fas fa-cloud" style="color: #667eea; width: 20px;"></i> <strong>Condition:</strong> ${data.current.condition.text}</p>
+                        </div>
+                    `;
+                    
+                    if (data.current.temp_c < 20) {
+                        message += `<p style="margin-top: 15px; padding: 10px; background: rgba(102,126,234,0.1); border-radius: 8px; color: #667eea;"><i class="fas fa-coffee"></i> It's chilly! Have a cup of tea.</p>`;
+                    } else {
+                        message += `<p style="margin-top: 15px; padding: 10px; background: rgba(102,126,234,0.1); border-radius: 8px; color: #667eea;"><i class="fas fa-sun"></i> It's warm! Enjoy the sunshine!</p>`;
+                    }
+                    
+                    weatherDiv.innerHTML = message;
+                    weatherDiv.classList.add('success');
+                    
+                    // Remove success class after animation
+                    setTimeout(() => {
+                        weatherDiv.classList.remove('success');
+                    }, 600);
+                }
+            } catch (err) {
+                loadingDiv.style.display = 'none';
+                weatherDiv.classList.remove('loading');
+                weatherDiv.innerHTML = `<p style="color:#e74c3c; text-align: center;"><i class="fas fa-exclamation-triangle"></i> Error fetching weather data.</p>`;
+            }
+        }
+        
+        // Function to search from history
+        async function searchFromHistory(city) {
+            hasAutoLoaded = false; // Reset flag when searching from history
+            document.getElementById('city').value = city;
+            
+            // Use the new function to load weather
+            await loadWeatherForCity(city);
+            
+            // Save search to backend
+            saveSearch(city);
+            
+            // Refresh history display
+            fetchHistory();
+        }
+        
+        // Initialize everything when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Page loaded, starting initialization...');
+            
+            // Load user info
+            loadUserInfo();
+            
+            // Load most recent weather
+            loadMostRecentWeather();
+            
+            // Load history
+            fetchHistory();
+        });
+        
+        // Backup - try again after page is fully loaded
+        window.addEventListener('load', function() {
+            console.log('Window fully loaded, checking weather...');
+            // Check if weather div still shows default message
+            const weatherDiv = document.getElementById('weather');
+            if (weatherDiv.innerHTML.includes('Enter a city to see the weather')) {
+                console.log('Weather not loaded yet, trying again...');
+                loadMostRecentWeather();
+            }
+        });
+        
+        // Function to test Firebase connection and data
+        async function testFirebaseConnection() {
+            try {
+                console.log('Testing Firebase connection...');
+                
+                // Test user info
+                const userRes = await fetch('/api/user');
+                const userData = await userRes.json();
+                console.log('User data:', userData);
+                
+                // Test most recent search
+                const searchRes = await fetch('/api/most-recent-search');
+                const searchData = await searchRes.json();
+                console.log('Most recent search data:', searchData);
+                
+                // Test full history
+                const historyRes = await fetch('/api/history');
+                const historyData = await historyRes.json();
+                console.log('Full history data:', historyData);
+                
+                return true;
+            } catch (err) {
+                console.error('Firebase connection test failed:', err);
+                return false;
+            }
+        }
+        
+        // Test Firebase connection on page load
+        setTimeout(() => {
+            testFirebaseConnection();
+        }, 1000);
+        
+        // Immediate attempt to load weather
+        console.log('Script loaded, attempting to load weather immediately...');
+        setTimeout(() => {
+            loadMostRecentWeather();
+        }, 100);
+    </script>
+</body>
+</html>

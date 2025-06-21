@@ -1,0 +1,22 @@
+{
+  "name": "weather-app",
+  "version": "1.0.0",
+  "description": "Weather application with Firebase authentication",
+  "main": "new.js",
+  "scripts": {
+    "start": "node new.js",
+    "dev": "nodemon new.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "bcrypt": "^5.1.1",
+    "express-session": "^1.17.3",
+    "firebase-admin": "^11.11.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": ["weather", "authentication", "firebase"],
+  "author": "",
+  "license": "ISC"
+} 
